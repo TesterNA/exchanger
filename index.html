@@ -190,20 +190,20 @@
 
         <div class="section optimal-section">
             <div class="section-title">Optimal Whole Number Exchange</div>
-            <div class="info-text">
-                Based on your input, to receive a whole number amount of Currency B (rounded down):
+            <div class="info-text" id="optimalInfo">
+                Based on your input, to receive a whole number amount (rounded down):
             </div>
             
             <div class="input-group">
-                <label for="optimalA">Optimal Currency A Amount</label>
-                <input type="number" id="optimalA" class="result-field" readonly>
+                <label for="optimalInput" id="optimalInputLabel">Optimal Amount to Exchange</label>
+                <input type="number" id="optimalInput" class="result-field" readonly>
             </div>
 
             <div class="arrow">↓</div>
 
             <div class="input-group">
-                <label for="optimalB">You will receive exactly (Currency B)</label>
-                <input type="number" id="optimalB" class="result-field" readonly>
+                <label for="optimalResult" id="optimalResultLabel">You will receive exactly</label>
+                <input type="number" id="optimalResult" class="result-field" readonly>
             </div>
         </div>
     </div>
@@ -213,10 +213,39 @@
         const ratioB = document.getElementById('ratioB');
         const amountA = document.getElementById('amountA');
         const amountB = document.getElementById('amountB');
-        const optimalA = document.getElementById('optimalA');
-        const optimalB = document.getElementById('optimalB');
+        const optimalInput = document.getElementById('optimalInput');
+        const optimalResult = document.getElementById('optimalResult');
+        const optimalInputLabel = document.getElementById('optimalInputLabel');
+        const optimalResultLabel = document.getElementById('optimalResultLabel');
 
         let lastEdited = 'A'; // Track which field was last edited
+
+        // Function to find GCD (Greatest Common Divisor)
+        function gcd(a, b) {
+            a = Math.abs(a);
+            b = Math.abs(b);
+            while (b !== 0) {
+                let temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
+
+        // Function to get smallest whole number ratio
+        function getWholeNumberRatio(rA, rB) {
+            // Convert to integers by multiplying by a large number
+            const multiplier = 10000;
+            let intA = Math.round(rA * multiplier);
+            let intB = Math.round(rB * multiplier);
+            
+            // Find GCD and simplify
+            const divisor = gcd(intA, intB);
+            intA = intA / divisor;
+            intB = intB / divisor;
+            
+            return { wholeA: intA, wholeB: intB };
+        }
 
         function calculateFromA() {
             const rA = parseFloat(ratioA.value) || 1;
@@ -224,11 +253,11 @@
             const inputAmount = parseFloat(amountA.value) || 0;
 
             // Calculate the result: amountA * (ratioB / ratioA)
-            const result = inputAmount * (rB / rA);
-            amountB.value = result.toFixed(2);
+            const resultB = inputAmount * (rB / rA);
+            amountB.value = resultB.toFixed(2);
 
-            // Calculate optimal amounts for whole number result
-            calculateOptimal(result, rA, rB);
+            // Update optimal section - we're exchanging A to get whole numbers
+            updateOptimalForA(inputAmount, rA, rB);
         }
 
         function calculateFromB() {
@@ -237,26 +266,58 @@
             const inputAmount = parseFloat(amountB.value) || 0;
 
             // Calculate the reverse: amountB * (ratioA / ratioB)
-            const result = inputAmount * (rA / rB);
-            amountA.value = result.toFixed(2);
+            const resultA = inputAmount * (rA / rB);
+            amountA.value = resultA.toFixed(2);
 
-            // Calculate optimal amounts based on Currency B input
-            const resultB = inputAmount;
-            calculateOptimal(resultB, rA, rB);
+            // Update optimal section - we're exchanging B to get whole numbers
+            updateOptimalForB(inputAmount, rA, rB);
         }
 
-        function calculateOptimal(resultB, rA, rB) {
-            if (resultB > 0) {
-                // Round down to get whole number
-                const wholeResult = Math.floor(resultB);
-                optimalB.value = wholeResult;
+        function updateOptimalForA(inputA, rA, rB) {
+            // When editing Currency A, show whole number exchange
+            optimalInputLabel.textContent = 'Optimal Currency A Amount';
+            optimalResultLabel.textContent = 'You will receive exactly (Currency B)';
 
-                // Calculate how much Currency A needed for this whole result
-                const optimalAmount = wholeResult * (rA / rB);
-                optimalA.value = optimalAmount.toFixed(2);
+            if (inputA > 0) {
+                const { wholeA, wholeB } = getWholeNumberRatio(rA, rB);
+                
+                // How many complete "packages" can we exchange?
+                const packages = Math.floor(inputA / wholeA);
+                
+                if (packages > 0) {
+                    optimalInput.value = packages * wholeA;
+                    optimalResult.value = packages * wholeB;
+                } else {
+                    optimalInput.value = '0';
+                    optimalResult.value = '0';
+                }
             } else {
-                optimalA.value = '0.00';
-                optimalB.value = '0';
+                optimalInput.value = '0';
+                optimalResult.value = '0';
+            }
+        }
+
+        function updateOptimalForB(inputB, rA, rB) {
+            // When editing Currency B, show whole number exchange
+            optimalInputLabel.textContent = 'Optimal Currency B Amount';
+            optimalResultLabel.textContent = 'You will receive exactly (Currency A)';
+
+            if (inputB > 0) {
+                const { wholeA, wholeB } = getWholeNumberRatio(rA, rB);
+                
+                // How many complete "packages" can we exchange?
+                const packages = Math.floor(inputB / wholeB);
+                
+                if (packages > 0) {
+                    optimalInput.value = packages * wholeB;
+                    optimalResult.value = packages * wholeA;
+                } else {
+                    optimalInput.value = '0';
+                    optimalResult.value = '0';
+                }
+            } else {
+                optimalInput.value = '0';
+                optimalResult.value = '0';
             }
         }
 
