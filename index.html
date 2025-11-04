@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Exchange Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calculator {
+            background: #1e1e2f;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid #2d2d44;
+        }
+
+        h1 {
+            text-align: center;
+            color: #e0e0e0;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #a0a0b0;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ratio-inputs {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .ratio-inputs input {
+            flex: 1;
+            padding: 12px;
+            font-size: 18px;
+            border: 2px solid #3a3a52;
+            border-radius: 8px;
+            text-align: center;
+            transition: border-color 0.3s;
+            background-color: #2a2a3e;
+            color: #e0e0e0;
+        }
+
+        .ratio-inputs input:focus {
+            outline: none;
+            border-color: #6c63ff;
+        }
+
+        .ratio-separator {
+            font-size: 24px;
+            font-weight: bold;
+            color: #6c63ff;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #a0a0b0;
+            margin-bottom: 8px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            border: 2px solid #3a3a52;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+            background-color: #2a2a3e;
+            color: #e0e0e0;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #6c63ff;
+        }
+
+        input[type="number"]::placeholder {
+            color: #5a5a6e;
+        }
+
+        .result-field {
+            background-color: #252538;
+            color: #e0e0e0;
+            font-weight: 600;
+            border-color: #4a4a62;
+        }
+
+        .optimal-section {
+            background-color: #252538;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #6c63ff;
+        }
+
+        .optimal-section .section-title {
+            color: #8a82ff;
+            margin-bottom: 15px;
+        }
+
+        .info-text {
+            font-size: 13px;
+            color: #8a8a9e;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .arrow {
+            text-align: center;
+            font-size: 24px;
+            color: #6c63ff;
+            margin: 15px 0;
+        }
+
+        @media (max-width: 480px) {
+            .calculator {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            input[type="number"] {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>💱 Currency Exchange Calculator</h1>
+
+        <div class="section">
+            <div class="section-title">Exchange Ratio</div>
+            <div class="ratio-inputs">
+                <input type="number" id="ratioA" value="1" min="0.01" step="0.01" placeholder="Currency A">
+                <span class="ratio-separator">:</span>
+                <input type="number" id="ratioB" value="1.20" min="0.01" step="0.01" placeholder="Currency B">
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="input-group">
+                <label for="amountA">Amount of Currency A</label>
+                <input type="number" id="amountA" value="0" min="0" step="0.01" placeholder="Enter amount">
+            </div>
+
+            <div class="arrow">⇅</div>
+
+            <div class="input-group">
+                <label for="amountB">Amount of Currency B</label>
+                <input type="number" id="amountB" value="0" min="0" step="0.01" placeholder="Enter amount">
+            </div>
+        </div>
+
+        <div class="section optimal-section">
+            <div class="section-title">Optimal Whole Number Exchange</div>
+            <div class="info-text">
+                Based on your input, to receive a whole number amount of Currency B (rounded down):
+            </div>
+            
+            <div class="input-group">
+                <label for="optimalA">Optimal Currency A Amount</label>
+                <input type="number" id="optimalA" class="result-field" readonly>
+            </div>
+
+            <div class="arrow">↓</div>
+
+            <div class="input-group">
+                <label for="optimalB">You will receive exactly (Currency B)</label>
+                <input type="number" id="optimalB" class="result-field" readonly>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ratioA = document.getElementById('ratioA');
+        const ratioB = document.getElementById('ratioB');
+        const amountA = document.getElementById('amountA');
+        const amountB = document.getElementById('amountB');
+        const optimalA = document.getElementById('optimalA');
+        const optimalB = document.getElementById('optimalB');
+
+        let lastEdited = 'A'; // Track which field was last edited
+
+        function calculateFromA() {
+            const rA = parseFloat(ratioA.value) || 1;
+            const rB = parseFloat(ratioB.value) || 1;
+            const inputAmount = parseFloat(amountA.value) || 0;
+
+            // Calculate the result: amountA * (ratioB / ratioA)
+            const result = inputAmount * (rB / rA);
+            amountB.value = result.toFixed(2);
+
+            // Calculate optimal amounts for whole number result
+            calculateOptimal(result, rA, rB);
+        }
+
+        function calculateFromB() {
+            const rA = parseFloat(ratioA.value) || 1;
+            const rB = parseFloat(ratioB.value) || 1;
+            const inputAmount = parseFloat(amountB.value) || 0;
+
+            // Calculate the reverse: amountB * (ratioA / ratioB)
+            const result = inputAmount * (rA / rB);
+            amountA.value = result.toFixed(2);
+
+            // Calculate optimal amounts based on Currency B input
+            const resultB = inputAmount;
+            calculateOptimal(resultB, rA, rB);
+        }
+
+        function calculateOptimal(resultB, rA, rB) {
+            if (resultB > 0) {
+                // Round down to get whole number
+                const wholeResult = Math.floor(resultB);
+                optimalB.value = wholeResult;
+
+                // Calculate how much Currency A needed for this whole result
+                const optimalAmount = wholeResult * (rA / rB);
+                optimalA.value = optimalAmount.toFixed(2);
+            } else {
+                optimalA.value = '0.00';
+                optimalB.value = '0';
+            }
+        }
+
+        function onRatioChange() {
+            if (lastEdited === 'A') {
+                calculateFromA();
+            } else {
+                calculateFromB();
+            }
+        }
+
+        // Add event listeners for ratio changes
+        ratioA.addEventListener('input', onRatioChange);
+        ratioB.addEventListener('input', onRatioChange);
+
+        // Add event listeners for amount changes
+        amountA.addEventListener('input', () => {
+            lastEdited = 'A';
+            calculateFromA();
+        });
+
+        amountB.addEventListener('input', () => {
+            lastEdited = 'B';
+            calculateFromB();
+        });
+
+        // Initial calculation
+        calculateFromA();
+    </script>
+</body>
+</html>
